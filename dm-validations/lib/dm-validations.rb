@@ -90,7 +90,12 @@ module DataMapper
     end
 
     def validation_property_value(name)
-      __send__(name) if respond_to?(name, true)
+      klass = respond_to?(:model) ? model : self.class
+      if klass.respond_to?(:relationships) && klass.relationships[name]
+        return klass.relationships[name].get(self)
+      end
+      return attribute_get(name) if respond_to?(:attribute_get)
+      respond_to?(name, true) ? __send__(name) : nil
     end
 
     # Get the corresponding Resource property, if it exists.
